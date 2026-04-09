@@ -142,7 +142,7 @@ export function Hospitals() {
                     },
                     rating: detailResult.rating,
                     formatted_phone_number: detailResult.formatted_phone_number,
-                    opening_hours: detailResult.opening_hours,
+                    opening_hours: detailResult.opening_hours as any,
                     distance: distance < 1000 
                       ? `${Math.round(distance)} m` 
                       : `${(distance / 1000).toFixed(1)} km`
@@ -150,7 +150,7 @@ export function Hospitals() {
                 } else {
                   console.warn('Failed to get details for place:', place.place_id)
                   resolve({
-                    ...place as HospitalData,
+                    ...(place as unknown as HospitalData),
                     distance: 'Unknown'
                   })
                 }

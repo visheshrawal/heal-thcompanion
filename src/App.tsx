@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
-import { ProtectedRoute } from './components/ProtectedRoute'
+import { ProtectedRoute, PatientRoute, DoctorRoute } from './components/ProtectedRoute'
 import { Landing } from './pages/Landing'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
@@ -13,8 +13,9 @@ import { Reports } from './pages/Reports'
 import { Hospitals } from './pages/Hospitals'
 import { SymptomChecker } from './pages/SymptomChecker'
 import { Appointments } from './pages/Appointments'
-import { CompleteProfile } from './pages/CompleteProfile'
 import { VerifyEmail } from './pages/VerifyEmail'
+import { CompleteProfile } from './pages/CompleteProfile'
+import { DoctorDashboard } from './pages/DoctorDashboard'
 
 function App() {
   return (
@@ -23,49 +24,42 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        
+        {/* Patient Routes - Only accessible by patients */}
         <Route path="/dashboard" element={
-          <ProtectedRoute>
+          <PatientRoute>
             <Dashboard />
-          </ProtectedRoute>
+          </PatientRoute>
         } />
         <Route path="/dashboard/medications" element={
-          <ProtectedRoute>
+          <PatientRoute>
             <Medications />
-          </ProtectedRoute>
+          </PatientRoute>
         } />
         <Route path="/symptom-checker" element={
-          <ProtectedRoute>
+          <PatientRoute>
             <SymptomChecker />
-          </ProtectedRoute>
+          </PatientRoute>
         } />
         <Route path="/appointments" element={
-          <ProtectedRoute>
+          <PatientRoute>
             <Appointments />
-          </ProtectedRoute>
+          </PatientRoute>
         } />
         <Route path="/reports" element={
-          <ProtectedRoute>
+          <PatientRoute>
             <Reports />
-          </ProtectedRoute>
+          </PatientRoute>
         } />
         <Route path="/hospitals" element={
-          <ProtectedRoute>
+          <PatientRoute>
             <Hospitals />
-          </ProtectedRoute>
+          </PatientRoute>
         } />
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
-          </ProtectedRoute>
-        } />
-        <Route path="/chat" element={
-          <ProtectedRoute>
-            <Chat />
-          </ProtectedRoute>
-        } />
-        <Route path="/emergency" element={
-          <ProtectedRoute>
-            <Emergency />
           </ProtectedRoute>
         } />
         <Route path="/complete-profile" element={
@@ -73,8 +67,25 @@ function App() {
             <CompleteProfile />
           </ProtectedRoute>
         } />
+        <Route path="/chat" element={
+          <PatientRoute>
+            <Chat />
+          </PatientRoute>
+        } />
+        <Route path="/emergency" element={
+          <PatientRoute>
+            <Emergency />
+          </PatientRoute>
+        } />
+
+        {/* Doctor Routes - Only accessible by doctors */}
+        <Route path="/doctor/dashboard" element={
+          <DoctorRoute>
+            <DoctorDashboard />
+          </DoctorRoute>
+        } />
+        
         <Route path="*" element={<Navigate to="/" replace />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
       </Routes>
     </AuthProvider>
   )

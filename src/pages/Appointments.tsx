@@ -6,19 +6,21 @@ import { getAIResponse } from '../lib/groq'
 import { 
   Calendar, 
   Clock, 
-  MapPin, 
   Video, 
-  Plus,
   Search,
   Star,
-  Filter,
   ChevronRight,
   Loader,
   Sparkles,
   X,
-  AlertCircle,
   CheckCircle
 } from 'lucide-react'
+
+interface TimeSlot {
+  date: string
+  time: string
+  available: boolean
+}
 
 interface Doctor {
   id: string
@@ -30,7 +32,8 @@ interface Doctor {
   languages: string[]
   is_available: boolean
   average_rating: number
-  avatar_url?: string
+  avatar_url?: string | null
+  available_slots?: TimeSlot[]
 }
 
 interface Appointment {
@@ -42,6 +45,114 @@ interface Appointment {
   status: string
   priority: string
   patient_issue: string
+}
+
+// Generate time slots for the next 7 days
+const generateTimeSlots = () => {
+  const slots = []
+  const today = new Date()
+  
+  for (let i = 1; i <= 7; i++) {
+    const date = new Date(today)
+    date.setDate(today.getDate() + i)
+    const dateStr = date.toISOString().split('T')[0]
+    
+    // Morning slots
+    slots.push({ date: dateStr, time: '09:00 AM', available: Math.random() > 0.3 })
+    slots.push({ date: dateStr, time: '10:00 AM', available: Math.random() > 0.3 })
+    slots.push({ date: dateStr, time: '11:00 AM', available: Math.random() > 0.3 })
+    
+    // Afternoon slots
+    slots.push({ date: dateStr, time: '02:00 PM', available: Math.random() > 0.3 })
+    slots.push({ date: dateStr, time: '03:00 PM', available: Math.random() > 0.3 })
+    slots.push({ date: dateStr, time: '04:00 PM', available: Math.random() > 0.3 })
+  }
+  
+  return slots
+}
+
+// Generate mock doctors
+const generateMockDoctors = (): Doctor[] => {
+  return [
+    {
+      id: 'mock-1',
+      full_name: 'Sarah Johnson',
+      specialization: 'Cardiology',
+      experience_years: 15,
+      consultation_fee: 150,
+      about: 'Board-certified cardiologist with expertise in preventive cardiology and heart disease management.',
+      languages: ['English', 'Spanish'],
+      is_available: true,
+      average_rating: 4.8,
+      avatar_url: null,
+      available_slots: generateTimeSlots()
+    },
+    {
+      id: 'mock-2',
+      full_name: 'Michael Chen',
+      specialization: 'Pediatrics',
+      experience_years: 12,
+      consultation_fee: 120,
+      about: 'Pediatrician specializing in childhood development and preventive care.',
+      languages: ['English', 'Mandarin'],
+      is_available: true,
+      average_rating: 4.9,
+      avatar_url: null,
+      available_slots: generateTimeSlots()
+    },
+    {
+      id: 'mock-3',
+      full_name: 'Emily Rodriguez',
+      specialization: 'Dermatology',
+      experience_years: 10,
+      consultation_fee: 130,
+      about: 'Dermatologist focusing on medical and cosmetic dermatology.',
+      languages: ['English', 'Portuguese'],
+      is_available: true,
+      average_rating: 4.7,
+      avatar_url: null,
+      available_slots: generateTimeSlots()
+    },
+    {
+      id: 'mock-4',
+      full_name: 'David Kim',
+      specialization: 'Neurology',
+      experience_years: 18,
+      consultation_fee: 200,
+      about: 'Neurologist specializing in headaches, epilepsy, and movement disorders.',
+      languages: ['English', 'Korean'],
+      is_available: true,
+      average_rating: 4.9,
+      avatar_url: null,
+      available_slots: generateTimeSlots()
+    },
+    {
+      id: 'mock-5',
+      full_name: 'Priya Sharma',
+      specialization: 'Internal Medicine',
+      experience_years: 8,
+      consultation_fee: 100,
+      about: 'Internal medicine physician focused on adult healthcare and chronic disease management.',
+      languages: ['English', 'Hindi'],
+      is_available: true,
+      average_rating: 4.6,
+      avatar_url: null,
+      available_slots: generateTimeSlots()
+    },
+    {
+      id: 'mock-6',
+      full_name: 'James Wilson',
+      specialization: 'Orthopedics',
+      experience_years: 20,
+      consultation_fee: 180,
+      about: 'Orthopedic surgeon specializing in sports medicine and joint replacement.',
+      languages: ['English'],
+      is_available: true,
+      average_rating: 4.8,
+      avatar_url: null,
+      available_slots: generateTimeSlots()
+    }
+  ]
 }
 
 export function Appointments() {
@@ -69,7 +180,9 @@ export function Appointments() {
   }, [user])
 
   const loadDoctors = async () => {
+    setLoading(true)
     try {
+      // Try to load from Supabase first
       const { data, error } = await supabase
         .from('doctor_profiles')
         .select(`
@@ -85,24 +198,34 @@ export function Appointments() {
         `)
         .eq('is_verified', true)
 
-      if (error) throw error
-
-      const formattedDoctors = data?.map(d => ({
-        id: d.id,
-        full_name: d.user_profiles?.full_name || 'Dr.',
-        specialization: d.specialization,
-        experience_years: d.experience_years,
-        consultation_fee: d.consultation_fee || 0,
-        about: d.about,
-        languages: d.languages || [],
-        is_available: d.is_available,
-        average_rating: d.average_rating || 0,
-        avatar_url: d.user_profiles?.avatar_url
-      })) || []
-
-      setDoctors(formattedDoctors)
+      let formattedDoctors: Doctor[] = []
+      
+      if (!error && data && data.length > 0) {
+        // Format real doctors from Supabase
+        formattedDoctors = data.map((d: any) => ({
+          id: d.id,
+          full_name: d.user_profiles?.full_name || 'Dr.',
+          specialization: d.specialization,
+          experience_years: d.experience_years,
+          consultation_fee: d.consultation_fee || 0,
+          about: d.about,
+          languages: d.languages || [],
+          is_available: d.is_available,
+          average_rating: d.average_rating || 0,
+          avatar_url: d.user_profiles?.avatar_url,
+          available_slots: generateTimeSlots()
+        }))
+      }
+      
+      // Add mock doctors (always include them for demo)
+      const mockDoctors = generateMockDoctors()
+      
+      // Combine real and mock doctors
+      setDoctors([...formattedDoctors, ...mockDoctors])
     } catch (error) {
       console.error('Error loading doctors:', error)
+      // Fallback to mock doctors only
+      setDoctors(generateMockDoctors())
     } finally {
       setLoading(false)
     }
@@ -150,6 +273,21 @@ export function Appointments() {
     }
   }
 
+  const calculatePriority = async () => {
+    try {
+      const { data, error } = await supabase
+        .rpc('calculate_appointment_priority', {
+          p_issue: bookingData.patient_issue,
+          p_symptoms: bookingData.symptoms
+        })
+      
+      if (error) throw error
+      return data || 'normal'
+    } catch (error) {
+      return 'normal'
+    }
+  }
+
   const bookAppointment = async () => {
     if (!selectedDoctor || !user) return
 
@@ -184,19 +322,15 @@ export function Appointments() {
     }
   }
 
-  const calculatePriority = async () => {
-    try {
-      const { data, error } = await supabase
-        .rpc('calculate_appointment_priority', {
-          p_issue: bookingData.patient_issue,
-          p_symptoms: bookingData.symptoms
-        })
-      
-      if (error) throw error
-      return data
-    } catch (error) {
-      return 'normal'
-    }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950">
+        <Sidebar />
+        <div className="ml-64 flex items-center justify-center h-screen">
+          <Loader className="w-8 h-8 text-purple-400 animate-spin" />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -254,7 +388,7 @@ export function Appointments() {
               {doctors.map(doctor => (
                 <div key={doctor.id} className="bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
                       {doctor.avatar_url ? (
                         <img src={doctor.avatar_url} alt={doctor.full_name} className="w-full h-full rounded-full object-cover" />
                       ) : (
@@ -263,27 +397,48 @@ export function Appointments() {
                         </span>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-white font-semibold">Dr. {doctor.full_name}</h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold truncate">Dr. {doctor.full_name}</h3>
                       <p className="text-purple-400 text-sm">{doctor.specialization}</p>
                       <div className="flex items-center gap-1 mt-1">
                         <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                         <span className="text-gray-300 text-xs">{doctor.average_rating.toFixed(1)}</span>
+                        <span className="text-gray-500 text-xs ml-2">{doctor.experience_years}+ years</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-2 mb-4 text-sm">
+                    <p className="text-gray-400 line-clamp-2">{doctor.about}</p>
                     <p className="text-gray-400">
-                      <span className="text-white">{doctor.experience_years}+ years</span> experience
-                    </p>
-                    <p className="text-gray-400">
-                      Speaks: {doctor.languages.join(', ')}
+                      <span className="text-white">Speaks:</span> {doctor.languages.join(', ')}
                     </p>
                     <p className="text-green-400 font-medium">
                       ${doctor.consultation_fee} per consultation
                     </p>
                   </div>
+
+                  {/* Available Time Slots */}
+                  {doctor.available_slots && (
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-400 mb-2">Available slots:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {doctor.available_slots
+                          .filter(slot => slot.available)
+                          .slice(0, 3)
+                          .map((slot, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-green-500/10 border border-green-500/30 rounded text-green-400 text-xs">
+                              {slot.date.split('-').slice(1).join('/')} {slot.time}
+                            </span>
+                          ))}
+                        {doctor.available_slots.filter(slot => slot.available).length > 3 && (
+                          <span className="px-2 py-1 bg-white/5 border border-white/10 rounded text-gray-400 text-xs">
+                            +{doctor.available_slots.filter(slot => slot.available).length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <button
                     onClick={() => {
@@ -307,11 +462,74 @@ export function Appointments() {
           {/* Upcoming Appointments */}
           {activeTab === 'upcoming' && (
             <div className="space-y-4">
-              {appointments.filter(a => a.status === 'confirmed' || a.status === 'pending').map(apt => (
-                <div key={apt.id} className="bg-white/5 border border-white/10 rounded-xl p-6">
-                  <div className="flex items-center justify-between">
+              {appointments.filter(a => a.status === 'confirmed' || a.status === 'pending').length === 0 ? (
+                <div className="text-center py-12 bg-white/5 border border-white/10 rounded-xl">
+                  <Calendar className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+                  <p className="text-gray-400">No upcoming appointments</p>
+                  <button
+                    onClick={() => setActiveTab('book')}
+                    className="mt-4 text-purple-400 hover:text-purple-300"
+                  >
+                    Book an appointment
+                  </button>
+                </div>
+              ) : (
+                appointments.filter(a => a.status === 'confirmed' || a.status === 'pending').map(apt => (
+                  <div key={apt.id} className="bg-white/5 border border-white/10 rounded-xl p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Calendar className="w-10 h-10 text-purple-400" />
+                        <div>
+                          <h3 className="text-white font-semibold">
+                            Dr. {apt.doctor?.user_profiles?.full_name} - {apt.doctor?.specialization}
+                          </h3>
+                          <p className="text-gray-400">
+                            {new Date(apt.appointment_date).toLocaleDateString()} at {apt.appointment_time}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              apt.status === 'confirmed' 
+                                ? 'bg-green-500/20 text-green-400' 
+                                : 'bg-yellow-500/20 text-yellow-400'
+                            }`}>
+                              {apt.status}
+                            </span>
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              apt.priority === 'emergency' ? 'bg-red-500/20 text-red-400' :
+                              apt.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                              'bg-blue-500/20 text-blue-400'
+                            }`}>
+                              {apt.priority} priority
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {apt.status === 'confirmed' && (
+                        <button className="px-4 py-2 bg-cyan-600/20 border border-cyan-500/30 text-cyan-400 rounded-lg flex items-center gap-2">
+                          <Video className="w-4 h-4" />
+                          Join Call
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Past Appointments */}
+          {activeTab === 'past' && (
+            <div className="space-y-4">
+              {appointments.filter(a => a.status === 'completed' || a.status === 'cancelled').length === 0 ? (
+                <div className="text-center py-12 bg-white/5 border border-white/10 rounded-xl">
+                  <Clock className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+                  <p className="text-gray-400">No past appointments</p>
+                </div>
+              ) : (
+                appointments.filter(a => a.status === 'completed' || a.status === 'cancelled').map(apt => (
+                  <div key={apt.id} className="bg-white/5 border border-white/10 rounded-xl p-6 opacity-60">
                     <div className="flex items-center gap-4">
-                      <Calendar className="w-10 h-10 text-purple-400" />
+                      <CheckCircle className="w-10 h-10 text-gray-400" />
                       <div>
                         <h3 className="text-white font-semibold">
                           Dr. {apt.doctor?.user_profiles?.full_name} - {apt.doctor?.specialization}
@@ -319,33 +537,18 @@ export function Appointments() {
                         <p className="text-gray-400">
                           {new Date(apt.appointment_date).toLocaleDateString()} at {apt.appointment_time}
                         </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            apt.status === 'confirmed' 
-                              ? 'bg-green-500/20 text-green-400' 
-                              : 'bg-yellow-500/20 text-yellow-400'
-                          }`}>
-                            {apt.status}
-                          </span>
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            apt.priority === 'emergency' ? 'bg-red-500/20 text-red-400' :
-                            apt.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                            'bg-blue-500/20 text-blue-400'
-                          }`}>
-                            {apt.priority} priority
-                          </span>
-                        </div>
+                        <span className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
+                          apt.status === 'completed' 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {apt.status}
+                        </span>
                       </div>
                     </div>
-                    {apt.status === 'confirmed' && (
-                      <button className="px-4 py-2 bg-cyan-600/20 border border-cyan-500/30 text-cyan-400 rounded-lg flex items-center gap-2">
-                        <Video className="w-4 h-4" />
-                        Join Call
-                      </button>
-                    )}
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
         </div>
@@ -366,24 +569,29 @@ export function Appointments() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-300 mb-2">Select Date</label>
-                <input
-                  type="date"
-                  value={bookingData.appointment_date}
-                  onChange={(e) => setBookingData({...bookingData, appointment_date: e.target.value})}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">Preferred Time</label>
-                <input
-                  type="time"
-                  value={bookingData.appointment_time}
-                  onChange={(e) => setBookingData({...bookingData, appointment_time: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
-                />
+                <label className="block text-sm text-gray-300 mb-2">Select Date & Time</label>
+                <select
+                  value={`${bookingData.appointment_date}|${bookingData.appointment_time}`}
+                  onChange={(e) => {
+                    const [date, time] = e.target.value.split('|')
+                    setBookingData({
+                      ...bookingData,
+                      appointment_date: date,
+                      appointment_time: time
+                    })
+                  }}
+                  className="w-full px-3 py-2 bg-slate-800 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                  required
+                >
+                  <option value="">Select a time slot</option>
+                  {selectedDoctor?.available_slots
+                    ?.filter(slot => slot.available)
+                    .map((slot, idx) => (
+                      <option key={idx} value={`${slot.date}|${slot.time}`}>
+                        {new Date(slot.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at {slot.time}
+                      </option>
+                    ))}
+                </select>
               </div>
 
               <div>

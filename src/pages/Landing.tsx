@@ -269,17 +269,28 @@ function HeartbeatGraph() {
     )
 }
 
+function BackgroundOrbs() {
+    return (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-600/20 blur-[120px] animate-pulse-slow" />
+            <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-600/20 blur-[100px] animate-float" />
+            <div className="absolute bottom-[-20%] left-[20%] w-[60%] h-[60%] rounded-full bg-indigo-600/15 blur-[140px] animate-pulse-slow" style={{ animationDelay: '2s' }} />
+        </div>
+    )
+}
+
 export function Landing() {
     const navigate = useNavigate()
 
     return (
-        <div className="min-h-screen relative">
+        <div className="min-h-screen relative overflow-hidden bg-[#050510]">
+            <BackgroundOrbs />
             <HeartbeatGraph />
 
             {/* Header with Auth Buttons */}
-            <header className="relative z-20">
-                <div className="container mx-auto px-4 py-4">
-                    <div className="flex justify-between items-center">
+            <header className="relative z-20 pt-6">
+                <div className="container mx-auto px-4">
+                    <div className="flex justify-between items-center backdrop-blur-xl bg-[#1a2035]/50 border border-white/10 rounded-2xl p-4 shadow-2xl">
                         <div className="flex items-center gap-2">
                             <Heart className="w-5 h-5 text-purple-500 fill-purple-500" />
                             <span className="text-lg font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
@@ -310,20 +321,20 @@ export function Landing() {
             <section className="relative py-20 md:py-32 overflow-hidden">
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="max-w-4xl mx-auto text-center">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-6 md:mb-8">
-                            <Shield className="w-3 h-3 text-purple-400" />
-                            <span className="text-xs font-medium text-gray-300">AI-Powered Health Guardian</span>
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 animate-fade-in shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+                            <Shield className="w-4 h-4 text-purple-400" />
+                            <span className="text-sm font-medium text-gray-200">AI-Powered Health Guardian</span>
                         </div>
 
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 bg-gradient-to-br from-white via-slate-200 to-slate-400 bg-clip-text text-transparent animate-slide-up">
                             Your AI Health Memory
                             <br />
-                            <span className="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text">
+                            <span className="bg-gradient-to-r from-purple-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
                                 & Emergency Guardian
                             </span>
                         </h1>
 
-                        <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-base sm:text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up max-w-[40rem]" style={{ animationDelay: '0.1s' }}>
                             The first AI companion that remembers your entire health journey,
                             provides instant symptom analysis, and protects you in emergencies.
                         </p>

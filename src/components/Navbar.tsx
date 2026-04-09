@@ -13,7 +13,7 @@ export function Navbar() {
   const location = useLocation()
 
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-black/50 border-b border-white/10">
+    <nav className="sticky top-0 z-50 backdrop-blur-2xl bg-[#0a0f1a]/70 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] transition-all duration-300">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -32,10 +32,10 @@ export function Navbar() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 border border-transparent ${
                     isActive
-                      ? 'bg-purple-600/20 text-purple-400 border border-purple-500/50'
-                      : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                      ? 'bg-white/10 text-cyan-400 border-white/20 shadow-[0_0_15px_rgba(34,211,238,0.15)]'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white hover:border-white/10 hover:shadow-lg'
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
@@ -58,7 +58,7 @@ export function Navbar() {
       </div>
 
       {/* Mobile Navigation - Bottom Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/80 border-t border-white/10">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-2xl bg-[#0a0f1a]/80 border-t border-white/10 shadow-[0_-4px_30px_rgba(0,0,0,0.1)]">
         <div className="flex justify-around items-center h-16 px-4">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path
@@ -66,10 +66,10 @@ export function Navbar() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-all ${
+                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300 ${
                   isActive
-                    ? 'text-purple-400'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'text-cyan-400 bg-white/10 shadow-[0_0_15px_rgba(34,211,238,0.1)]'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <item.icon className="w-5 h-5" />

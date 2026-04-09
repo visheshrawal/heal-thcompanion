@@ -132,7 +132,6 @@ export function Dashboard() {
 
       const response = await getAIResponse(prompt, 'You are a helpful health AI. Keep responses brief, encouraging, and personalized.')
       
-      // Parse insights (split by newline and filter empty)
       const insights = response.split('\n').filter(line => line.trim().length > 0).slice(0, 3)
       setAiInsights(insights)
     } catch (error) {
@@ -206,7 +205,6 @@ export function Dashboard() {
     localStorage.setItem('adherence', JSON.stringify(newAdherence))
     setAdherenceData(newAdherence)
     
-    // Regenerate AI insights after medication update
     setTimeout(() => generateAIInsights(), 500)
   }
 
@@ -344,9 +342,7 @@ export function Dashboard() {
 
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content - 2 columns */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Upcoming Medications */}
               <div className="bg-white/5 border border-white/10 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -403,7 +399,6 @@ export function Dashboard() {
                 )}
               </div>
 
-              {/* Quick Actions */}
               <div className="bg-white/5 border border-white/10 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-2 gap-3">
@@ -439,9 +434,7 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* Sidebar Content - 1 column */}
             <div className="space-y-6">
-              {/* AI Health Insights */}
               <div className="bg-gradient-to-br from-purple-600/20 to-cyan-600/20 border border-white/10 rounded-xl p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Brain className="w-5 h-5 text-purple-400" />
@@ -474,7 +467,6 @@ export function Dashboard() {
                 </button>
               </div>
 
-              {/* Health Tip of the Day */}
               <div className="bg-white/5 border border-white/10 rounded-xl p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Heart className="w-5 h-5 text-red-400" />
@@ -500,7 +492,6 @@ export function Dashboard() {
                 </button>
               </div>
 
-              {/* Streak Card */}
               <div className="bg-gradient-to-br from-orange-600/20 to-red-600/20 border border-white/10 rounded-xl p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -526,7 +517,6 @@ export function Dashboard() {
                 </div>
               </div>
 
-              {/* AI Chat Quick Access */}
               <div 
                 onClick={() => navigate('/chat')}
                 className="bg-gradient-to-br from-purple-600/30 to-cyan-600/30 border border-purple-500/30 rounded-xl p-6 cursor-pointer hover:scale-[1.02] transition-all"
